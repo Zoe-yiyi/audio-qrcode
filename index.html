@@ -440,7 +440,7 @@
       </section>
     </div>
 
-    <audio id="audio" preload="metadata" playsinline webkit-playsinline></audio>
+    <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
   </main>
 
 <script>
@@ -620,7 +620,9 @@
   }
 
   function syncAudioLinks(url) {
+    audio.pause();
     audio.src = url;
+    audio.load();
     downloadBtn.href = url;
     downloadBtn.download = buildDownloadName(url, 'audio.m4a');
   }
