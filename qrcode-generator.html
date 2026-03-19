@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微信音频二维码生成器</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --paper: #f8f4ec;
+    --ink: #1f1d2b;
+    --muted: #665f73;
+    --panel: rgba(255,255,255,0.72);
+    --line: rgba(31,29,43,0.1);
+    --accent: #0ea5a0;
+    --accent-2: #f59e0b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,0.55), transparent 28%),
+      linear-gradient(135deg, #efe6d7, #dce7ef 45%, #e9f2e3);
+    padding: 28px;
+  }
+
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(320px, 430px) 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .panel,
+  .preview-card {
+    border-radius: 28px;
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 60px rgba(31, 29, 43, 0.14);
+  }
+
+  .panel {
+    padding: 24px;
+    position: sticky;
+    top: 20px;
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+  }
+
+  .lead {
+    margin: 0 0 20px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid rgba(31,29,43,0.12);
+    background: rgba(255,255,255,0.85);
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--ink);
+  }
+
+  textarea { min-height: 88px; resize: vertical; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  button {
+    border: 0;
+    border-radius: 999px;
+    padding: 13px 18px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .primary {
+    color: white;
+    background: linear-gradient(135deg, var(--accent), #0f766e);
+  }
+
+  .secondary {
+    color: var(--ink);
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(31,29,43,0.12);
+  }
+
+  .preview-wrap {
+    display: grid;
+    gap: 18px;
+  }
+
+  .preview-card {
+    padding: 30px;
+    overflow: hidden;
+    position: relative;
+    min-height: 720px;
+  }
+
+  .poster {
+    width: min(100%, 620px);
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 36px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
+  }
+
+  .poster::before,
+  .poster::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.42;
+  }
+
+  .poster::before {
+    width: 260px;
+    height: 260px;
+    right: -80px;
+    top: -60px;
+    background: rgba(255,255,255,0.25);
+  }
+
+  .poster::after {
+    width: 220px;
+    height: 220px;
+    left: -70px;
+    bottom: -60px;
+    background: rgba(255,255,255,0.16);
+  }
+
+  .poster-head,
+  .poster-body,
+  .poster-foot {
+    position: relative;
+    z-index: 1;
+  }
+
+  .poster-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    font-size: 14px;
+  }
+
+  .poster h2 {
+    margin: 0;
+    font-size: 38px;
+    line-height: 1.15;
+  }
+
+  .poster p {
+    margin: 12px 0 0;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.82);
+  }
+
+  .poster-body {
+    display: grid;
+    grid-template-columns: 1fr 270px;
+    gap: 24px;
+    align-items: center;
+    margin: 34px 0 26px;
+  }
+
+  .wave {
+    min-height: 220px;
+    border-radius: 26px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.16);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px;
+  }
+
+  .bar {
+    width: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.85);
+  }
+
+  .qrcode-box {
+    background: white;
+    border-radius: 28px;
+    padding: 20px;
+    display: grid;
+    place-items: center;
+    box-shadow: inset 0 0 0 1px rgba(15,23,42,0.08);
+  }
+
+  #qrcode {
+    width: 230px;
+    height: 230px;
+  }
+
+  #qrcode img,
+  #qrcode canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .poster-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .foot-note {
+    max-width: 320px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.84);
+    line-height: 1.7;
+  }
+
+  .urls {
+    padding: 16px 18px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(31,29,43,0.08);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.7;
+    word-break: break-all;
+  }
+
+  .urls strong { display: inline-block; margin-right: 6px; }
+
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; }
+    .poster-body { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 16px; }
+    .panel, .preview-card { border-radius: 24px; }
+    .preview-card, .panel { padding: 18px; }
+    .two-col { grid-template-columns: 1fr; }
+    .poster { padding: 22px; border-radius: 28px; }
+    .poster h2 { font-size: 30px; }
+    #qrcode { width: 210px; height: 210px; }
+  }
+</style>
+</head>
+<body>
+  <div class="layout">
+    <section class="panel">
+      <h1>音频二维码生成器</h1>
+      <p class="lead">把音频托管到 GitHub，再通过 GitHub Pages 播放页生成长期有效、可反复扫码的微信收听二维码。</p>
+
+      <div class="field two-col">
+        <div>
+          <label for="username">GitHub 用户名</label>
+          <input id="username" value="Zoezhang" placeholder="例如 yourname">
+        </div>
+        <div>
+          <label for="repo">仓库名</label>
+          <input id="repo" value="audio-qrcode" placeholder="例如 audio-qrcode">
+        </div>
+      </div>
+
+      <div class="field two-col">
+        <div>
+          <label for="branch">分支名</label>
+          <input id="branch" value="main" placeholder="main">
+        </div>
+        <div>
+          <label for="fileName">音频文件名</label>
+          <input id="fileName" value="audio.m4a" placeholder="audio.m4a">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="directAudioUrl">或直接粘贴音频直链</label>
+          <input id="directAudioUrl" value="https://cdn.jsdelivr.net/gh/Zoezhang/audio-qrcode@main/audio.m4a" placeholder="https://cdn.jsdelivr.net/gh/用户名/audio-qrcode@main/audio.m4a">
+      </div>
+
+      <div class="field">
+        <label for="title">主标题</label>
+          <input id="title" value="read aloud" placeholder="例如 春日治愈钢琴集">
+      </div>
+
+      <div class="field">
+        <label for="subtitle">副标题</label>
+        <textarea id="subtitle" placeholder="例如 每一次扫码都能直接进入微信收听页，适合海报、名片和社群传播。">微信扫码即可收听 read aloud，适合朗读分享，页面长期有效，可反复扫码。</textarea>
+      </div>
+
+      <div class="field two-col">
+        <div>
+          <label for="theme">海报主题</label>
+          <select id="theme">
+            <option value="aurora">空灵氛围</option>
+            <option value="podcast">播客对谈</option>
+            <option value="story" selected>故事朗读</option>
+            <option value="memo">语音备忘</option>
+            <option value="radio">电台时刻</option>
+            <option value="luxe">金色奢感</option>
+            <option value="forest">自然清听</option>
+          </select>
+        </div>
+        <div>
+          <label for="badge">角标文字</label>
+          <input id="badge" value="朗读音频" placeholder="例如 新歌首发">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="generateBtn" type="button">生成二维码</button>
+        <button class="secondary" id="downloadBtn" type="button">下载二维码海报</button>
+      </div>
+    </section>
+
+    <section class="preview-wrap">
+      <div class="preview-card">
+        <div class="poster" id="poster">
+          <div class="poster-head">
+            <span class="chip" id="badgeText">朗读音频</span>
+            <span class="chip" id="themeText">故事朗读</span>
+          </div>
+
+          <div class="poster-copy">
+            <h2 id="posterTitle">read aloud</h2>
+            <p id="posterSubtitle">微信扫码即可收听 read aloud，适合朗读分享，页面长期有效，可反复扫码。</p>
+          </div>
+
+          <div class="poster-body">
+            <div class="wave" id="wave"></div>
+            <div class="qrcode-box">
+              <div id="qrcode"></div>
+            </div>
+          </div>
+
+          <div class="poster-foot">
+            <div class="foot-note">扫码进入专属朗读收听页，支持微信内打开、长期分享、不限扫码次数。</div>
+            <div class="chip" id="scanHint">Scan to Play</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="urls" id="urlBox">
+        <div><strong>音频链接:</strong><span id="audioUrlText">等待生成</span></div>
+        <div><strong>播放页面:</strong><span id="pageUrlText">等待生成</span></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  const username = document.getElementById('username');
+  const repo = document.getElementById('repo');
+  const branch = document.getElementById('branch');
+  const fileName = document.getElementById('fileName');
+  const directAudioUrl = document.getElementById('directAudioUrl');
+  const titleInput = document.getElementById('title');
+  const subtitleInput = document.getElementById('subtitle');
+  const themeSelect = document.getElementById('theme');
+  const badgeInput = document.getElementById('badge');
+  const badgeText = document.getElementById('badgeText');
+  const themeText = document.getElementById('themeText');
+  const poster = document.getElementById('poster');
+  const posterTitle = document.getElementById('posterTitle');
+  const posterSubtitle = document.getElementById('posterSubtitle');
+  const wave = document.getElementById('wave');
+  const urlBox = document.getElementById('urlBox');
+  const audioUrlText = document.getElementById('audioUrlText');
+  const pageUrlText = document.getElementById('pageUrlText');
+  const generateBtn = document.getElementById('generateBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const qrcodeNode = document.getElementById('qrcode');
+
+  const themeMap = {
+    aurora: {
+      name: '空灵氛围',
+      colors: ['#14314a', '#2563eb', '#2dd4bf']
+    },
+    podcast: {
+      name: '播客对谈',
+      colors: ['#3b1d4a', '#ec4899', '#fb7185']
+    },
+    story: {
+      name: '故事朗读',
+      colors: ['#0f3c5f', '#0891b2', '#67e8f9']
+    },
+    memo: {
+      name: '语音备忘',
+      colors: ['#154734', '#10b981', '#a7f3d0']
+    },
+    radio: {
+      name: '电台时刻',
+      colors: ['#58243a', '#fb7185', '#fde047']
+    },
+    luxe: {
+      name: '金色奢感',
+      colors: ['#4a2307', '#f59e0b', '#fde68a']
+    },
+    forest: {
+      name: '自然清听',
+      colors: ['#163825', '#22c55e', '#d9f99d']
+    }
+  };
+
+  function renderWave() {
+    wave.innerHTML = '';
+    [54, 88, 66, 120, 80, 104, 58, 96, 72, 112].forEach(height => {
+      const bar = document.createElement('span');
+      bar.className = 'bar';
+      bar.style.height = height + 'px';
+      wave.appendChild(bar);
+    });
+  }
+
+  function buildAudioUrl() {
+    if (directAudioUrl.value.trim()) return directAudioUrl.value.trim();
+    return 'https://cdn.jsdelivr.net/gh/' + username.value.trim() + '/' + repo.value.trim() + '@' + branch.value.trim() + '/' + fileName.value.trim();
+  }
+
+  function buildPageUrl(audioUrl) {
+    const base = 'https://' + username.value.trim() + '.github.io/' + repo.value.trim() + '/';
+    const params = new URLSearchParams({
+      audio: audioUrl,
+      title: titleInput.value.trim(),
+      subtitle: subtitleInput.value.trim(),
+      theme: themeSelect.value
+    });
+    return base + '?' + params.toString();
+  }
+
+  function applyTheme() {
+    const theme = themeMap[themeSelect.value];
+    poster.style.background = 'linear-gradient(145deg, ' + theme.colors[0] + ', ' + theme.colors[1] + ' 60%, ' + theme.colors[2] + ')';
+    themeText.textContent = theme.name;
+    badgeText.textContent = badgeInput.value.trim() || '微信扫码收听';
+    posterTitle.textContent = titleInput.value.trim() || '扫码收听我的音频';
+    posterSubtitle.textContent = subtitleInput.value.trim() || '微信扫码即播，页面长期有效。';
+  }
+
+  let qr;
+
+  function generate() {
+    applyTheme();
+    renderWave();
+    const audioUrl = buildAudioUrl();
+    const pageUrl = buildPageUrl(audioUrl);
+    audioUrlText.textContent = audioUrl;
+    pageUrlText.textContent = pageUrl;
+    qrcodeNode.innerHTML = '';
+    qr = new QRCode(qrcodeNode, {
+      text: pageUrl,
+      width: 230,
+      height: 230,
+      colorDark: '#111827',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  async function downloadPoster() {
+    generate();
+    const canvas = await html2canvas(poster, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    link.download = 'wechat-audio-qrcode.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function applyQueryDefaults() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('username')) username.value = params.get('username');
+    if (params.get('repo')) repo.value = params.get('repo');
+    if (params.get('branch')) branch.value = params.get('branch');
+    if (params.get('file')) fileName.value = params.get('file');
+    if (params.get('audio')) directAudioUrl.value = params.get('audio');
+    if (params.get('title')) titleInput.value = params.get('title');
+    if (params.get('subtitle')) subtitleInput.value = params.get('subtitle');
+    if (params.get('theme') && themeMap[params.get('theme')]) themeSelect.value = params.get('theme');
+    if (params.get('badge')) badgeInput.value = params.get('badge');
+  }
+
+  generateBtn.addEventListener('click', generate);
+  downloadBtn.addEventListener('click', downloadPoster);
+  applyQueryDefaults();
+  renderWave();
+  generate();
+</script>
+</body>
+</html>
