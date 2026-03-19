@@ -117,6 +117,22 @@
     margin-top: 18px;
   }
 
+  .status-note {
+    margin-top: 12px;
+    min-height: 24px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .status-note.error {
+    color: #b42318;
+  }
+
+  .status-note.success {
+    color: #0f766e;
+  }
+
   button {
     border: 0;
     border-radius: 999px;
@@ -384,6 +400,7 @@
         <button class="primary" id="generateBtn" type="button">生成二维码</button>
         <button class="secondary" id="downloadBtn" type="button">下载二维码海报</button>
       </div>
+      <div class="status-note" id="statusNote"></div>
     </section>
 
     <section class="preview-wrap">
@@ -442,6 +459,7 @@
   const generateBtn = document.getElementById('generateBtn');
   const downloadBtn = document.getElementById('downloadBtn');
   const qrcodeNode = document.getElementById('qrcode');
+  const statusNote = document.getElementById('statusNote');
 
   const themeMap = {
     aurora: {
@@ -536,6 +554,49 @@
     return base + '?' + params.toString();
   }
 
+  function hexToRgb(hex) {
+    const normalized = hex.replace('#', '');
+    const value = normalized.length === 3
+      ? normalized.split('').map(char => char + char).join('')
+      : normalized;
+    const number = parseInt(value, 16);
+
+    return {
+      r: (number >> 16) & 255,
+      g: (number >> 8) & 255,
+      b: number & 255
+    };
+  }
+
+  function withAlpha(hex, alpha) {
+    const rgb = hexToRgb(hex);
+    return 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + alpha + ')';
+  }
+
+  function setStatus(message, type) {
+    statusNote.textContent = message || '';
+    statusNote.className = 'status-note' + (type ? ' ' + type : '');
+  }
+
+  function setBusyState(isBusy) {
+    generateBtn.disabled = isBusy;
+    downloadBtn.disabled = isBusy;
+    generateBtn.style.opacity = isBusy ? '0.7' : '1';
+    downloadBtn.style.opacity = isBusy ? '0.7' : '1';
+    generateBtn.style.cursor = isBusy ? 'wait' : 'pointer';
+    downloadBtn.style.cursor = isBusy ? 'wait' : 'pointer';
+  }
+
+  function ensureLibraries() {
+    if (!window.QRCode) {
+      throw new Error('二维码脚本加载失败，请刷新页面后重试。');
+    }
+
+    if (!window.html2canvas) {
+      throw new Error('海报导出脚本加载失败，请刷新页面后重试。');
+    }
+  }
+
   function escapeHtml(text) {
     return text
       .replace(/&/g, '&amp;')
@@ -563,12 +624,12 @@
   function applyTheme() {
     const theme = themeMap[themeSelect.value];
     poster.style.background = 'linear-gradient(145deg, ' + theme.bg1 + ', ' + theme.bg2 + ' 58%, ' + theme.accent + ')';
-    poster.style.setProperty('--poster-chip-bg', 'color-mix(in srgb, ' + theme.accentSoft + ' 18%, transparent)');
+    poster.style.setProperty('--poster-chip-bg', withAlpha(theme.accentSoft, 0.18));
     poster.style.setProperty('--poster-chip-text', theme.accentSoft);
-    poster.style.setProperty('--poster-panel-bg', 'color-mix(in srgb, ' + theme.accent + ' 16%, white 6%, transparent)');
-    poster.style.setProperty('--poster-panel-line', 'color-mix(in srgb, ' + theme.accentSoft + ' 20%, transparent)');
-    poster.style.setProperty('--poster-glow-1', 'color-mix(in srgb, ' + theme.gold + ' 36%, transparent)');
-    poster.style.setProperty('--poster-glow-2', 'color-mix(in srgb, ' + theme.accent + ' 22%, transparent)');
+    poster.style.setProperty('--poster-panel-bg', withAlpha(theme.accent, 0.16));
+    poster.style.setProperty('--poster-panel-line', withAlpha(theme.accentSoft, 0.20));
+    poster.style.setProperty('--poster-glow-1', withAlpha(theme.gold, 0.36));
+    poster.style.setProperty('--poster-glow-2', withAlpha(theme.accent, 0.22));
     themeText.textContent = theme.name;
     badgeText.textContent = badgeInput.value.trim() || '微信扫码收听';
     posterTitle.textContent = titleInput.value.trim() || '扫码收听我的音频';
@@ -578,34 +639,69 @@
   let qr;
 
   function generate() {
-    applyTheme();
-    renderWave();
-    const audioUrl = buildAudioUrl();
-    const pageUrl = buildPageUrl(audioUrl);
-    audioUrlText.textContent = audioUrl;
-    pageUrlText.textContent = pageUrl;
-    qrcodeNode.innerHTML = '';
-    qr = new QRCode(qrcodeNode, {
-      text: pageUrl,
-      width: 230,
-      height: 230,
-      colorDark: '#111827',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
+    try {
+      ensureLibraries();
+      applyTheme();
+      renderWave();
+
+      const audioUrl = buildAudioUrl();
+      const pageUrl = buildPageUrl(audioUrl);
+
+      audioUrlText.textContent = audioUrl;
+      pageUrlText.textContent = pageUrl;
+      qrcodeNode.innerHTML = '';
+
+      qr = new QRCode(qrcodeNode, {
+        text: pageUrl,
+        width: 230,
+        height: 230,
+        colorDark: '#111827',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      setStatus('二维码已更新，可直接下载海报。', 'success');
+      return true;
+    } catch (error) {
+      setStatus(error.message || '生成二维码失败，请稍后重试。', 'error');
+      return false;
+    }
+  }
+
+  function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(() => resolve()));
   }
 
   async function downloadPoster() {
-    generate();
-    const canvas = await html2canvas(poster, {
-      backgroundColor: null,
-      scale: 2,
-      useCORS: true
-    });
-    const link = document.createElement('a');
-    link.download = 'wechat-audio-qrcode.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    try {
+      setBusyState(true);
+
+      if (!generate()) {
+        return;
+      }
+
+      await nextFrame();
+      await nextFrame();
+
+      const canvas = await html2canvas(poster, {
+        backgroundColor: null,
+        scale: Math.max(2, Math.min(3, window.devicePixelRatio || 2)),
+        useCORS: true,
+        logging: false
+      });
+
+      const link = document.createElement('a');
+      link.download = 'wechat-audio-qrcode.png';
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setStatus('二维码海报已开始下载。', 'success');
+    } catch (error) {
+      setStatus(error.message || '下载二维码海报失败，请稍后重试。', 'error');
+    } finally {
+      setBusyState(false);
+    }
   }
 
   function applyQueryDefaults() {
