@@ -15,6 +15,12 @@
     --line: rgba(31,29,43,0.1);
     --accent: #0ea5a0;
     --accent-2: #f59e0b;
+    --poster-chip-bg: rgba(255,255,255,0.18);
+    --poster-chip-text: rgba(255,255,255,0.96);
+    --poster-panel-bg: rgba(255,255,255,0.10);
+    --poster-panel-line: rgba(255,255,255,0.16);
+    --poster-glow-1: rgba(255,255,255,0.25);
+    --poster-glow-2: rgba(255,255,255,0.16);
   }
 
   * { box-sizing: border-box; }
@@ -167,7 +173,7 @@
     height: 260px;
     right: -80px;
     top: -60px;
-    background: rgba(255,255,255,0.25);
+    background: var(--poster-glow-1);
   }
 
   .poster::after {
@@ -175,7 +181,7 @@
     height: 220px;
     left: -70px;
     bottom: -60px;
-    background: rgba(255,255,255,0.16);
+    background: var(--poster-glow-2);
   }
 
   .poster-head,
@@ -198,7 +204,8 @@
     gap: 8px;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.18);
+    background: var(--poster-chip-bg);
+    color: var(--poster-chip-text);
     backdrop-filter: blur(8px);
     font-size: 14px;
   }
@@ -230,8 +237,8 @@
   .wave {
     min-height: 220px;
     border-radius: 26px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.16);
+    background: var(--poster-panel-bg);
+    border: 1px solid var(--poster-panel-line);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -439,31 +446,59 @@
   const themeMap = {
     aurora: {
       name: '空灵氛围',
-      colors: ['#14314a', '#2563eb', '#2dd4bf']
+      bg1: '#0d2238',
+      bg2: '#132b45',
+      accent: '#85e1d6',
+      accentSoft: '#eef7ef',
+      gold: '#f0d786'
     },
     podcast: {
       name: '播客对谈',
-      colors: ['#3b1d4a', '#ec4899', '#fb7185']
+      bg1: '#24162f',
+      bg2: '#3a2350',
+      accent: '#f39bc5',
+      accentSoft: '#fff0f6',
+      gold: '#ffd38c'
     },
     story: {
       name: '故事朗读',
-      colors: ['#0f3c5f', '#0891b2', '#67e8f9']
+      bg1: '#10273f',
+      bg2: '#163652',
+      accent: '#8fd8d0',
+      accentSoft: '#effaf6',
+      gold: '#ecd38a'
     },
     memo: {
       name: '语音备忘',
-      colors: ['#154734', '#10b981', '#a7f3d0']
+      bg1: '#112a24',
+      bg2: '#1d453b',
+      accent: '#8de0bf',
+      accentSoft: '#eefcf4',
+      gold: '#f4e3ab'
     },
     radio: {
       name: '电台时刻',
-      colors: ['#58243a', '#fb7185', '#fde047']
+      bg1: '#301b2d',
+      bg2: '#492645',
+      accent: '#ff9ca8',
+      accentSoft: '#fff0f0',
+      gold: '#f6d46f'
     },
     luxe: {
       name: '金色奢感',
-      colors: ['#4a2307', '#f59e0b', '#fde68a']
+      bg1: '#28190e',
+      bg2: '#4b2d1b',
+      accent: '#f1c779',
+      accentSoft: '#fff5e4',
+      gold: '#ffe6a4'
     },
     forest: {
       name: '自然清听',
-      colors: ['#163825', '#22c55e', '#d9f99d']
+      bg1: '#0e2519',
+      bg2: '#173627',
+      accent: '#9fe0bc',
+      accentSoft: '#f3fff6',
+      gold: '#dff3ad'
     }
   };
 
@@ -527,7 +562,13 @@
 
   function applyTheme() {
     const theme = themeMap[themeSelect.value];
-    poster.style.background = 'linear-gradient(145deg, ' + theme.colors[0] + ', ' + theme.colors[1] + ' 60%, ' + theme.colors[2] + ')';
+    poster.style.background = 'linear-gradient(145deg, ' + theme.bg1 + ', ' + theme.bg2 + ' 58%, ' + theme.accent + ')';
+    poster.style.setProperty('--poster-chip-bg', 'color-mix(in srgb, ' + theme.accentSoft + ' 18%, transparent)');
+    poster.style.setProperty('--poster-chip-text', theme.accentSoft);
+    poster.style.setProperty('--poster-panel-bg', 'color-mix(in srgb, ' + theme.accent + ' 16%, white 6%, transparent)');
+    poster.style.setProperty('--poster-panel-line', 'color-mix(in srgb, ' + theme.accentSoft + ' 20%, transparent)');
+    poster.style.setProperty('--poster-glow-1', 'color-mix(in srgb, ' + theme.gold + ' 36%, transparent)');
+    poster.style.setProperty('--poster-glow-2', 'color-mix(in srgb, ' + theme.accent + ' 22%, transparent)');
     themeText.textContent = theme.name;
     badgeText.textContent = badgeInput.value.trim() || '微信扫码收听';
     posterTitle.textContent = titleInput.value.trim() || '扫码收听我的音频';
