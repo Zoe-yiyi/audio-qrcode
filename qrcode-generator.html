@@ -464,59 +464,59 @@
   const themeMap = {
     aurora: {
       name: '空灵氛围',
-      bg1: '#1f5eff',
-      bg2: '#32c5ff',
-      accent: '#8af4ff',
-      accentSoft: '#f3fffe',
-      gold: '#ffe27a'
+      bg1: '#173d89',
+      bg2: '#245fb8',
+      accent: '#63cde8',
+      accentSoft: '#edf8fd',
+      gold: '#eacb73'
     },
     podcast: {
       name: '播客对谈',
-      bg1: '#ff5b8f',
-      bg2: '#ff8a5b',
-      accent: '#ffd0dd',
-      accentSoft: '#fff5f7',
-      gold: '#ffe08a'
+      bg1: '#91315f',
+      bg2: '#c45b58',
+      accent: '#f0a8b8',
+      accentSoft: '#fff3f7',
+      gold: '#e7c37a'
     },
     story: {
       name: '故事朗读',
-      bg1: '#ff7a59',
-      bg2: '#ffb347',
-      accent: '#ffe3b0',
-      accentSoft: '#fffaf0',
-      gold: '#fff08a'
+      bg1: '#a14e38',
+      bg2: '#d28a42',
+      accent: '#f0c487',
+      accentSoft: '#fff8ef',
+      gold: '#efd789'
     },
     memo: {
       name: '语音备忘',
-      bg1: '#14b87a',
-      bg2: '#55d68d',
-      accent: '#bff6d7',
-      accentSoft: '#f3fff8',
-      gold: '#ffe49a'
+      bg1: '#1d7f63',
+      bg2: '#3fa187',
+      accent: '#8ed8bf',
+      accentSoft: '#f0fbf6',
+      gold: '#e8d08e'
     },
     radio: {
       name: '电台时刻',
-      bg1: '#7a43ff',
-      bg2: '#ff5fd2',
-      accent: '#ffc7f0',
-      accentSoft: '#fff4fd',
-      gold: '#ffd86b'
+      bg1: '#56339a',
+      bg2: '#8f4ca8',
+      accent: '#e2a8d8',
+      accentSoft: '#faf2fc',
+      gold: '#e8c56e'
     },
     luxe: {
       name: '金色奢感',
-      bg1: '#f08a24',
-      bg2: '#f7c948',
-      accent: '#ffe1a6',
-      accentSoft: '#fff9ec',
-      gold: '#fff0a8'
+      bg1: '#9a5a1f',
+      bg2: '#c99643',
+      accent: '#efcf90',
+      accentSoft: '#fff8ed',
+      gold: '#f0dc95'
     },
     forest: {
       name: '自然清听',
-      bg1: '#18a957',
-      bg2: '#73d13d',
-      accent: '#d6f8b8',
-      accentSoft: '#f8fff0',
-      gold: '#fff18c'
+      bg1: '#236f46',
+      bg2: '#5a9a49',
+      accent: '#b8de98',
+      accentSoft: '#f6fcef',
+      gold: '#dfd27d'
     }
   };
 
@@ -633,17 +633,17 @@
   function applyTheme() {
     const theme = themeMap[themeSelect.value];
     poster.style.background = [
-      'radial-gradient(circle at 18% 18%, ' + withAlpha(theme.accentSoft, 0.28) + ', transparent 28%)',
-      'radial-gradient(circle at 85% 14%, ' + withAlpha(theme.gold, 0.24) + ', transparent 24%)',
-      'radial-gradient(circle at 20% 88%, ' + withAlpha(theme.accent, 0.26) + ', transparent 26%)',
+      'radial-gradient(circle at 18% 18%, ' + withAlpha(theme.accentSoft, 0.18) + ', transparent 28%)',
+      'radial-gradient(circle at 85% 14%, ' + withAlpha(theme.gold, 0.18) + ', transparent 24%)',
+      'radial-gradient(circle at 20% 88%, ' + withAlpha(theme.accent, 0.20) + ', transparent 26%)',
       'linear-gradient(145deg, ' + theme.bg1 + ', ' + theme.bg2 + ' 58%, ' + theme.accent + ')'
     ].join(', ');
-    poster.style.setProperty('--poster-chip-bg', withAlpha(theme.accentSoft, 0.18));
+    poster.style.setProperty('--poster-chip-bg', withAlpha(theme.accentSoft, 0.14));
     poster.style.setProperty('--poster-chip-text', theme.accentSoft);
-    poster.style.setProperty('--poster-panel-bg', withAlpha(theme.accent, 0.16));
-    poster.style.setProperty('--poster-panel-line', withAlpha(theme.accentSoft, 0.20));
-    poster.style.setProperty('--poster-glow-1', withAlpha(theme.gold, 0.36));
-    poster.style.setProperty('--poster-glow-2', withAlpha(theme.accent, 0.22));
+    poster.style.setProperty('--poster-panel-bg', withAlpha(theme.accent, 0.12));
+    poster.style.setProperty('--poster-panel-line', withAlpha(theme.accentSoft, 0.18));
+    poster.style.setProperty('--poster-glow-1', withAlpha(theme.gold, 0.28));
+    poster.style.setProperty('--poster-glow-2', withAlpha(theme.accent, 0.18));
     themeText.textContent = theme.name;
     badgeText.textContent = badgeInput.value.trim() || '微信扫码收听';
     posterTitle.textContent = titleInput.value.trim() || '扫码收听我的音频';
