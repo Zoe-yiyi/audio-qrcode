@@ -215,6 +215,10 @@
     color: rgba(255,255,255,0.82);
   }
 
+  .poster-subtitle-line + .poster-subtitle-line {
+    margin-top: 8px;
+  }
+
   .poster-body {
     display: grid;
     grid-template-columns: 1fr 270px;
@@ -497,13 +501,37 @@
     return base + '?' + params.toString();
   }
 
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function renderPosterSubtitle(text) {
+    const trimmed = text.trim();
+    const hasListMarkers = /^\s*-/.test(trimmed) || /\s+-\s+/.test(trimmed);
+    const lines = hasListMarkers
+      ? trimmed.split(/\s+-\s+|^\s*-\s*/).map(item => item.trim()).filter(Boolean)
+      : [trimmed].filter(Boolean);
+
+    if (!lines.length) {
+      posterSubtitle.textContent = '';
+      return;
+    }
+
+    posterSubtitle.innerHTML = lines
+      .map(item => '<div class="poster-subtitle-line">' + (hasListMarkers ? '- ' : '') + escapeHtml(item) + '</div>')
+      .join('');
+  }
+
   function applyTheme() {
     const theme = themeMap[themeSelect.value];
     poster.style.background = 'linear-gradient(145deg, ' + theme.colors[0] + ', ' + theme.colors[1] + ' 60%, ' + theme.colors[2] + ')';
     themeText.textContent = theme.name;
     badgeText.textContent = badgeInput.value.trim() || '微信扫码收听';
     posterTitle.textContent = titleInput.value.trim() || '扫码收听我的音频';
-    posterSubtitle.textContent = subtitleInput.value.trim() || '微信扫码即播，页面长期有效。';
+    renderPosterSubtitle(subtitleInput.value.trim() || '微信扫码即播，页面长期有效。');
   }
 
   let qr;
