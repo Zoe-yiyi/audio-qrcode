@@ -42,14 +42,14 @@
   }
 
   body {
-    padding: 22px 12px calc(22px + env(safe-area-inset-bottom));
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
   }
 
   .phone-shell {
     width: min(100%, 820px);
     margin: 0 auto;
-    min-height: calc(100vh - 44px);
-    border-radius: 38px;
+    min-height: calc(100vh - 20px - env(safe-area-inset-bottom));
+    border-radius: 32px;
     border: 1px solid var(--panel-line);
     background:
       linear-gradient(180deg, rgba(12, 30, 50, 0.96), rgba(19, 41, 66, 0.98));
@@ -71,7 +71,11 @@
   .content {
     position: relative;
     z-index: 1;
-    padding: 24px 22px 12px;
+    min-height: calc(100vh - 20px - env(safe-area-inset-bottom));
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .topbar {
@@ -91,14 +95,14 @@
   }
 
   .theme-badge {
-    padding: 18px 26px;
-    font-size: 18px;
+    padding: 12px 18px;
+    font-size: 15px;
     font-weight: 700;
   }
 
   .status-text {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 8px 0;
+    font-size: 13px;
     font-weight: 600;
     background: transparent;
     border: 0;
@@ -107,11 +111,11 @@
   .hero {
     display: grid;
     place-items: center;
-    padding: 30px 0 18px;
+    padding: 10px 0 4px;
   }
 
   .record {
-    width: min(100%, 440px);
+    width: min(100%, clamp(180px, 31vh, 300px));
     aspect-ratio: 1;
     border-radius: 50%;
     position: relative;
@@ -168,7 +172,7 @@
   }
 
   .record-core {
-    width: 154px;
+    width: clamp(88px, 14vh, 122px);
     aspect-ratio: 1;
     border-radius: 50%;
     display: grid;
@@ -177,31 +181,35 @@
     box-shadow:
       inset 0 2px 14px rgba(255, 255, 255, 0.32),
       0 12px 36px rgba(0, 0, 0, 0.2);
-    font-size: 64px;
+    font-size: clamp(42px, 6vh, 54px);
   }
 
   .text-block {
-    padding: 8px 26px 0;
+    padding: 2px 8px 0;
   }
 
   .title {
     margin: 0;
-    font-size: clamp(28px, 8vw, 54px);
-    line-height: 1.1;
+    font-size: clamp(25px, 6vw, 40px);
+    line-height: 1.08;
     font-weight: 800;
     letter-spacing: -0.03em;
   }
 
   .subtitle {
-    margin: 18px 0 0;
+    margin: 12px 0 0;
     color: rgba(255, 255, 255, 0.78);
-    font-size: clamp(17px, 4.8vw, 28px);
-    line-height: 1.55;
+    font-size: clamp(15px, 3.6vw, 21px);
+    line-height: 1.45;
     letter-spacing: 0.01em;
   }
 
+  .subtitle-line + .subtitle-line {
+    margin-top: 6px;
+  }
+
   .progress-wrap {
-    padding: 34px 26px 0;
+    padding: 14px 8px 0;
   }
 
   .time-row {
@@ -210,14 +218,14 @@
     align-items: center;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.78);
-    font-size: clamp(18px, 5vw, 30px);
-    margin-bottom: 18px;
+    font-size: clamp(16px, 4.5vw, 24px);
+    margin-bottom: 12px;
   }
 
   .seek-bar {
     width: 100%;
     appearance: none;
-    height: 18px;
+    height: 14px;
     border-radius: 999px;
     background: linear-gradient(90deg, var(--mint) 0 var(--progress, 0%), rgba(255, 255, 255, 0.28) var(--progress, 0%) 100%);
     border: 1px solid rgba(255, 255, 255, 0.14);
@@ -226,8 +234,8 @@
 
   .seek-bar::-webkit-slider-thumb {
     appearance: none;
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #74d6cb;
     border: 0;
@@ -235,8 +243,8 @@
   }
 
   .seek-bar::-moz-range-thumb {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #74d6cb;
     border: 0;
@@ -244,24 +252,24 @@
   }
 
   .seek-bar::-moz-range-track {
-    height: 18px;
+    height: 14px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.28);
   }
 
   .controls {
-    padding: 34px 26px 0;
+    padding: 14px 8px 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
   }
 
   .secondary-actions {
-    padding: 22px 26px 0;
+    padding: 12px 8px 0;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   button,
@@ -275,8 +283,8 @@
     text-decoration: none;
     text-align: center;
     cursor: pointer;
-    min-height: 72px;
-    padding: 0 22px;
+    min-height: 58px;
+    padding: 0 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -284,12 +292,12 @@
   }
 
   .jump-btn {
-    min-width: 128px;
-    font-size: clamp(22px, 5.2vw, 34px);
+    min-width: 88px;
+    font-size: clamp(18px, 4.8vw, 28px);
   }
 
   .play-btn {
-    min-width: 192px;
+    min-width: 136px;
     color: #0a1220;
     background: linear-gradient(90deg, var(--mint), var(--mint-2));
     border: 0;
@@ -298,17 +306,7 @@
   .action-btn,
   .link-btn {
     width: 100%;
-    font-size: clamp(18px, 4.3vw, 30px);
-  }
-
-  .tips {
-    margin: 28px 26px 26px;
-    padding: 24px 26px;
-    border-radius: 28px;
-    background: rgba(64, 81, 107, 0.6);
-    color: rgba(255, 255, 255, 0.72);
-    font-size: clamp(15px, 4.2vw, 26px);
-    line-height: 1.6;
+    font-size: clamp(16px, 4vw, 24px);
   }
 
   audio {
@@ -322,47 +320,83 @@
 
   @media (max-width: 520px) {
     .phone-shell {
-      min-height: calc(100vh - 24px);
-      border-radius: 32px;
+      min-height: calc(100vh - 12px - env(safe-area-inset-bottom));
+      border-radius: 26px;
     }
 
     .content {
-      padding: 18px 14px 10px;
+      min-height: calc(100vh - 12px - env(safe-area-inset-bottom));
+      padding: 12px 12px 14px;
     }
 
     .theme-badge {
-      padding: 14px 20px;
-      font-size: 16px;
+      padding: 10px 14px;
+      font-size: 14px;
     }
 
     .status-text {
-      padding: 8px 0;
       font-size: 12px;
     }
 
     .record {
-      width: min(100%, 330px);
+      width: min(100%, 230px);
     }
 
     .record-core {
-      width: 122px;
-      font-size: 52px;
+      width: 92px;
+      font-size: 40px;
     }
 
     .controls {
-      gap: 12px;
+      gap: 10px;
     }
 
     .jump-btn {
-      min-width: 98px;
+      min-width: 78px;
     }
 
     .play-btn {
-      min-width: 150px;
+      min-width: 118px;
     }
 
     .secondary-actions {
-      gap: 12px;
+      gap: 10px;
+    }
+
+    button,
+    .link-btn {
+      min-height: 54px;
+      padding: 0 14px;
+    }
+  }
+
+  @media (max-height: 760px) {
+    .content {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .hero {
+      padding-top: 6px;
+    }
+
+    .record {
+      width: min(100%, 200px);
+    }
+
+    .title {
+      font-size: clamp(22px, 5.8vw, 30px);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.38;
+    }
+
+    .progress-wrap,
+    .controls,
+    .secondary-actions {
+      padding-top: 10px;
     }
   }
 </style>
@@ -383,7 +417,7 @@
 
       <section class="text-block">
         <h1 class="title" id="title">微信扫码收听</h1>
-        <p class="subtitle" id="subtitle">打开即可播放，适合分享课程、朗读、播客或品牌语音内容。</p>
+        <div class="subtitle" id="subtitle">打开即可播放，适合分享课程、朗读、播客或品牌语音内容。</div>
       </section>
 
       <section class="progress-wrap">
@@ -402,12 +436,7 @@
 
       <section class="secondary-actions">
         <button id="speedBtn" class="action-btn" type="button">1.0x</button>
-        <button id="shareBtn" class="action-btn" type="button">复制链接</button>
         <a id="downloadBtn" class="link-btn" href="#" download>下载音频</a>
-      </section>
-
-      <section class="tips">
-        建议把这个页面通过 GitHub Pages 发布，再把二维码印在海报、名片或朋友圈配图中。微信内置浏览器可直接播放音频。
       </section>
     </div>
 
@@ -421,7 +450,6 @@
   const rewindBtn = document.getElementById('rewindBtn');
   const forwardBtn = document.getElementById('forwardBtn');
   const speedBtn = document.getElementById('speedBtn');
-  const shareBtn = document.getElementById('shareBtn');
   const downloadBtn = document.getElementById('downloadBtn');
   const seekBar = document.getElementById('seekBar');
   const currentTime = document.getElementById('currentTime');
@@ -517,41 +545,28 @@
     record.classList.toggle('playing', playing);
   }
 
-  function flashShareText(text) {
-    shareBtn.textContent = text;
-    setTimeout(() => {
-      shareBtn.textContent = '复制链接';
-    }, 1600);
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 
-  function copyLinkFallback() {
-    const input = document.createElement('textarea');
-    input.value = window.location.href;
-    input.setAttribute('readonly', 'readonly');
-    input.style.position = 'fixed';
-    input.style.opacity = '0';
-    document.body.appendChild(input);
-    input.select();
+  function renderSubtitle(text) {
+    const trimmed = text.trim();
+    const hasListMarkers = /^\s*-/.test(trimmed) || /\s+-\s+/.test(trimmed);
+    const lines = hasListMarkers
+      ? trimmed.split(/\s+-\s+|^\s*-\s*/).map(item => item.trim()).filter(Boolean)
+      : [trimmed].filter(Boolean);
 
-    try {
-      document.execCommand('copy');
-      flashShareText('已复制');
-    } catch (error) {
-      flashShareText('复制失败');
-    }
-
-    document.body.removeChild(input);
-  }
-
-  function copyLink() {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => flashShareText('已复制'))
-        .catch(copyLinkFallback);
+    if (!lines.length) {
+      subtitle.textContent = '';
       return;
     }
 
-    copyLinkFallback();
+    subtitle.innerHTML = lines
+      .map(item => '<div class="subtitle-line">' + (hasListMarkers ? '- ' : '') + escapeHtml(item) + '</div>')
+      .join('');
   }
 
   function buildDownloadName(url, fallbackName) {
@@ -571,7 +586,7 @@
 
   applyTheme(themeKey);
   title.textContent = titleText;
-  subtitle.textContent = subtitleText;
+  renderSubtitle(subtitleText);
   document.title = titleText + ' - 微信扫码收听';
   audio.src = audioUrl;
   downloadBtn.href = audioUrl;
@@ -607,8 +622,6 @@
     audio.playbackRate = nextSpeed;
     speedBtn.textContent = nextSpeed.toFixed(2).replace(/\.00$/, '.0') + 'x';
   });
-
-  shareBtn.addEventListener('click', copyLink);
 
   seekBar.addEventListener('input', () => {
     if (!audio.duration) return;
