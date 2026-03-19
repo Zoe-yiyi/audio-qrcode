@@ -363,8 +363,8 @@
 
       <div class="field">
         <label for="directAudioUrl">或直接粘贴音频直链</label>
-          <input id="directAudioUrl" placeholder="https://cdn.jsdelivr.net/gh/用户名/audio-qrcode@main/audio.m4a">
-          <div class="hint">留空时会根据 GitHub 用户名、仓库名、分支名和音频文件名自动拼接 jsDelivr 链接。</div>
+          <input id="directAudioUrl" placeholder="https://用户名.github.io/audio-qrcode/audio.m4a">
+          <div class="hint">留空时会根据 GitHub 用户名、仓库名和音频文件名自动拼接 GitHub Pages 同域音频链接，移动端兼容性更稳定。</div>
       </div>
 
       <div class="field">
@@ -534,8 +534,12 @@
     return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
   }
 
+  function buildPagesBaseUrl() {
+    return 'https://' + username.value.trim() + '.github.io/' + repo.value.trim() + '/';
+  }
+
   function buildAutoAudioUrl() {
-    return 'https://cdn.jsdelivr.net/gh/' + username.value.trim() + '/' + repo.value.trim() + '@' + branch.value.trim() + '/' + encodePathSegments(fileName.value.trim());
+    return buildPagesBaseUrl() + encodePathSegments(fileName.value.trim());
   }
 
   function buildAudioUrl() {
@@ -544,14 +548,13 @@
   }
 
   function buildPageUrl(audioUrl) {
-    const base = 'https://' + username.value.trim() + '.github.io/' + repo.value.trim() + '/';
     const params = new URLSearchParams({
       audio: audioUrl,
       title: titleInput.value.trim(),
       subtitle: subtitleInput.value.trim(),
       theme: themeSelect.value
     });
-    return base + '?' + params.toString();
+    return buildPagesBaseUrl() + '?' + params.toString();
   }
 
   function hexToRgb(hex) {
@@ -604,12 +607,18 @@
       .replace(/>/g, '&gt;');
   }
 
+  function splitSubtitleSegments(text) {
+    return text
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .flatMap(line => line.split(/\s*-\s*/))
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
   function renderPosterSubtitle(text) {
-    const trimmed = text.trim();
-    const hasListMarkers = /^\s*-/.test(trimmed) || /\s+-\s+/.test(trimmed);
-    const lines = hasListMarkers
-      ? trimmed.split(/\s+-\s+|^\s*-\s*/).map(item => item.trim()).filter(Boolean)
-      : [trimmed].filter(Boolean);
+    const lines = splitSubtitleSegments(text.trim());
+    const hasListMarkers = lines.length > 1;
 
     if (!lines.length) {
       posterSubtitle.textContent = '';

@@ -552,12 +552,18 @@
       .replace(/>/g, '&gt;');
   }
 
+  function splitSubtitleSegments(text) {
+    return text
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .flatMap(line => line.split(/\s*-\s*/))
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
   function renderSubtitle(text) {
-    const trimmed = text.trim();
-    const hasListMarkers = /^\s*-/.test(trimmed) || /\s+-\s+/.test(trimmed);
-    const lines = hasListMarkers
-      ? trimmed.split(/\s+-\s+|^\s*-\s*/).map(item => item.trim()).filter(Boolean)
-      : [trimmed].filter(Boolean);
+    const lines = splitSubtitleSegments(text.trim());
+    const hasListMarkers = lines.length > 1;
 
     if (!lines.length) {
       subtitle.textContent = '';
@@ -579,22 +585,65 @@
     }
   }
 
-  const audioUrl = params.get('audio') || './audio.m4a';
+  function resolveDefaultAudioUrl() {
+    return new URL('./audio.m4a', window.location.href).href;
+  }
+
+  function parseJsdelivrAudioUrl(url) {
+    try {
+      const parsedUrl = new URL(url, window.location.href);
+      const match = parsedUrl.pathname.match(/^\/gh\/([^/]+)\/([^@/]+)@([^/]+)\/(.+)$/);
+
+      if (parsedUrl.hostname !== 'cdn.jsdelivr.net' || !match) {
+        return null;
+      }
+
+      return {
+        owner: decodeURIComponent(match[1]),
+        repo: decodeURIComponent(match[2]),
+        branch: decodeURIComponent(match[3]),
+        path: match[4].split('/').map(segment => decodeURIComponent(segment)).join('/')
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function buildFallbackAudioUrl(url) {
+    const parsedAudio = parseJsdelivrAudioUrl(url);
+
+    if (!parsedAudio) {
+      return null;
+    }
+
+    return new URL(parsedAudio.path, window.location.href).href;
+  }
+
+  function syncAudioLinks(url) {
+    audio.src = url;
+    downloadBtn.href = url;
+    downloadBtn.download = buildDownloadName(url, 'audio.m4a');
+  }
+
   const titleText = params.get('title') || '班级小故事';
   const subtitleText = params.get('subtitle') || '欢迎来到班级小故事, 扫码即可收听班级里的温暖片段与成长声音。';
   const themeKey = params.get('theme') || 'aurora';
+  let activeAudioUrl = params.get('audio') || resolveDefaultAudioUrl();
+  let fallbackAudioUrl = buildFallbackAudioUrl(activeAudioUrl);
+  let playRequested = false;
 
   applyTheme(themeKey);
   title.textContent = titleText;
   renderSubtitle(subtitleText);
   document.title = titleText + ' - 微信扫码收听';
-  audio.src = audioUrl;
-  downloadBtn.href = audioUrl;
-  downloadBtn.download = buildDownloadName(audioUrl, 'audio.m4a');
+  syncAudioLinks(activeAudioUrl);
   updateProgress();
 
   playBtn.addEventListener('click', async () => {
     if (audio.paused) {
+      playRequested = true;
+      statusText.textContent = '正在加载音频...';
+
       try {
         await audio.play();
         setPlayingState(true);
@@ -602,6 +651,7 @@
         statusText.textContent = '请点击后播放';
       }
     } else {
+      playRequested = false;
       audio.pause();
       setPlayingState(false);
     }
@@ -632,11 +682,33 @@
   audio.addEventListener('timeupdate', updateProgress);
   audio.addEventListener('pause', () => setPlayingState(false));
   audio.addEventListener('play', () => setPlayingState(true));
+  audio.addEventListener('canplay', async () => {
+    if (!playRequested || !audio.paused) {
+      return;
+    }
+
+    try {
+      await audio.play();
+    } catch (error) {
+      statusText.textContent = '请点击后播放';
+    }
+  });
   audio.addEventListener('ended', () => {
+    playRequested = false;
     setPlayingState(false);
     statusText.textContent = '播放完成';
   });
   audio.addEventListener('error', () => {
+    if (fallbackAudioUrl && activeAudioUrl !== fallbackAudioUrl) {
+      activeAudioUrl = fallbackAudioUrl;
+      fallbackAudioUrl = null;
+      syncAudioLinks(activeAudioUrl);
+      statusText.textContent = '正在切换备用音频...';
+      audio.load();
+      return;
+    }
+
+    playRequested = false;
     setPlayingState(false);
     statusText.textContent = '音频加载失败';
   });
