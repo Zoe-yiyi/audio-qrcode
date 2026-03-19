@@ -18,6 +18,8 @@
 - `audio.m4a`：示例音频
 - `index.html`：微信扫码后的音频播放页
 - `qrcode-generator.html`：二维码海报生成器
+- `GitHub-Token-创建说明.md`：GitHub 临时 Token 创建说明
+- `GitHub-Pages-Build-and-Deployment-说明.md`：GitHub Pages 发布说明
 - `PRD-v1.0.md`：产品需求说明
 - `🚀快速开始-三分钟完成.md`：快速部署说明
 - `项目说明.txt`：项目清单说明
