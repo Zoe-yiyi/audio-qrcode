@@ -72,7 +72,7 @@
 
 ## 7. 文件与职责映射
 
-- `audio.m4a`：示例音频文件
+- `audio.m4a`：项目音频文件，可替换为实际要分享的单条音频
 - `index.html`：微信端播放页
 - `qrcode-generator.html`：二维码海报生成器
 - `deploy.sh` / `立即开始-三步完成.bat`：本地打开生成器

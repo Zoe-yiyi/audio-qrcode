@@ -517,32 +517,65 @@
     record.classList.toggle('playing', playing);
   }
 
+  function flashShareText(text) {
+    shareBtn.textContent = text;
+    setTimeout(() => {
+      shareBtn.textContent = '复制链接';
+    }, 1600);
+  }
+
+  function copyLinkFallback() {
+    const input = document.createElement('textarea');
+    input.value = window.location.href;
+    input.setAttribute('readonly', 'readonly');
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    document.body.appendChild(input);
+    input.select();
+
+    try {
+      document.execCommand('copy');
+      flashShareText('已复制');
+    } catch (error) {
+      flashShareText('复制失败');
+    }
+
+    document.body.removeChild(input);
+  }
+
   function copyLink() {
-    navigator.clipboard.writeText(window.location.href)
-      .then(() => {
-        shareBtn.textContent = '已复制';
-        setTimeout(() => {
-          shareBtn.textContent = '复制链接';
-        }, 1600);
-      })
-      .catch(() => {
-        shareBtn.textContent = '复制失败';
-        setTimeout(() => {
-          shareBtn.textContent = '复制链接';
-        }, 1600);
-      });
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => flashShareText('已复制'))
+        .catch(copyLinkFallback);
+      return;
+    }
+
+    copyLinkFallback();
+  }
+
+  function buildDownloadName(url, fallbackName) {
+    try {
+      const pathname = new URL(url, window.location.href).pathname;
+      const fileName = pathname.split('/').pop();
+      return fileName || fallbackName;
+    } catch (error) {
+      return fallbackName;
+    }
   }
 
   const audioUrl = params.get('audio') || './audio.m4a';
-  const titleText = params.get('title') || '微信扫码收听';
-  const subtitleText = params.get('subtitle') || '打开即可播放，适合分享课程、朗读、播客或品牌语音内容。';
+  const titleText = params.get('title') || '班级小故事';
+  const subtitleText = params.get('subtitle') || '欢迎来到班级小故事, 扫码即可收听班级里的温暖片段与成长声音。';
   const themeKey = params.get('theme') || 'aurora';
 
   applyTheme(themeKey);
   title.textContent = titleText;
   subtitle.textContent = subtitleText;
+  document.title = titleText + ' - 微信扫码收听';
   audio.src = audioUrl;
   downloadBtn.href = audioUrl;
+  downloadBtn.download = buildDownloadName(audioUrl, 'audio.m4a');
   updateProgress();
 
   playBtn.addEventListener('click', async () => {
@@ -589,6 +622,10 @@
   audio.addEventListener('ended', () => {
     setPlayingState(false);
     statusText.textContent = '播放完成';
+  });
+  audio.addEventListener('error', () => {
+    setPlayingState(false);
+    statusText.textContent = '音频加载失败';
   });
 </script>
 </body>

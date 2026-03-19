@@ -1,6 +1,6 @@
 # 微信音频二维码 v1.0
 
-一个基于 GitHub Pages 和 jsDelivr 的微信音频分享方案。用户扫码后进入手机端播放页，可在微信内直接收听音频。
+一个基于 GitHub Pages 和 jsDelivr 的微信音频分享方案。当前示例已经替换为《班级小故事》音频，扫码后进入手机端播放页，可在微信内直接收听。
 
 ## 已实现功能
 
@@ -15,7 +15,7 @@
 
 ## 当前文件
 
-- `audio.m4a`：示例音频
+- `audio.m4a`：已替换为 `班级小故事_1.m4a` 的仓库发布版本
 - `index.html`：微信扫码后的音频播放页
 - `qrcode-generator.html`：二维码海报生成器
 - `GitHub-Token-创建说明.md`：GitHub 临时 Token 创建说明
@@ -58,6 +58,7 @@ https://<github-username>.github.io/audio-qrcode/?audio=<encoded-audio-url>&titl
 
 - 仓库：`https://github.com/Zoe-yiyi/audio-qrcode`
 - 播放页：`https://zoe-yiyi.github.io/audio-qrcode/`
+- 默认音频文件：`audio.m4a`（内容为《班级小故事》）
 
 ## 当前限制
 

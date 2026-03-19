@@ -61,7 +61,7 @@ https://zoe-yiyi.github.io/audio-qrcode/?audio=<encoded-audio-url>&title=<encode
 ## 示例链接
 
 ```text
-https://zoe-yiyi.github.io/audio-qrcode/?audio=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2FZoe-yiyi%2Faudio-qrcode%40main%2Faudio.m4a&title=read+aloud&subtitle=%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E5%8D%B3%E5%8F%AF%E6%94%B6%E5%90%AC+read+aloud%EF%BC%8C%E9%80%82%E5%90%88%E6%9C%97%E8%AF%BB%E5%88%86%E4%BA%AB%EF%BC%8C%E9%A1%B5%E9%9D%A2%E9%95%BF%E6%9C%9F%E6%9C%89%E6%95%88%EF%BC%8C%E5%8F%AF%E5%8F%8D%E5%A4%8D%E6%89%AB%E7%A0%81%E3%80%82&theme=story
+https://zoe-yiyi.github.io/audio-qrcode/?audio=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2FZoe-yiyi%2Faudio-qrcode%40main%2Faudio.m4a&title=%E7%8F%AD%E7%BA%A7%E5%B0%8F%E6%95%85%E4%BA%8B&subtitle=%E6%89%AB%E7%A0%81%E5%8D%B3%E5%8F%AF%E6%94%B6%E5%90%AC%E7%8F%AD%E7%BA%A7%E5%B0%8F%E6%95%85%E4%BA%8B%EF%BC%8C%E9%80%82%E5%90%88%E7%8F%AD%E7%BA%A7%E5%88%86%E4%BA%AB%E3%80%81%E6%B4%BB%E5%8A%A8%E7%95%99%E5%BF%B5%E4%B8%8E%E6%88%90%E9%95%BF%E8%AE%B0%E5%BD%95%EF%BC%8C%E9%A1%B5%E9%9D%A2%E9%95%BF%E6%9C%9F%E6%9C%89%E6%95%88%EF%BC%8C%E5%8F%AF%E5%8F%8D%E5%A4%8D%E6%89%AB%E7%A0%81%E3%80%82&theme=story
 ```
 
 ## 发布验证方法

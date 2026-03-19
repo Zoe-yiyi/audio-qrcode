@@ -97,6 +97,13 @@
     gap: 12px;
   }
 
+  .hint {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
   .actions {
     display: flex;
     gap: 12px;
@@ -329,17 +336,18 @@
 
       <div class="field">
         <label for="directAudioUrl">或直接粘贴音频直链</label>
-          <input id="directAudioUrl" value="https://cdn.jsdelivr.net/gh/Zoe-yiyi/audio-qrcode@main/audio.m4a" placeholder="https://cdn.jsdelivr.net/gh/用户名/audio-qrcode@main/audio.m4a">
+          <input id="directAudioUrl" placeholder="https://cdn.jsdelivr.net/gh/用户名/audio-qrcode@main/audio.m4a">
+          <div class="hint">留空时会根据 GitHub 用户名、仓库名、分支名和音频文件名自动拼接 jsDelivr 链接。</div>
       </div>
 
       <div class="field">
         <label for="title">主标题</label>
-          <input id="title" value="read aloud" placeholder="例如 春日治愈钢琴集">
+          <input id="title" value="班级小故事" placeholder="例如 春日治愈钢琴集">
       </div>
 
       <div class="field">
         <label for="subtitle">副标题</label>
-        <textarea id="subtitle" placeholder="例如 每一次扫码都能直接进入微信收听页，适合海报、名片和社群传播。">微信扫码即可收听 read aloud，适合朗读分享，页面长期有效，可反复扫码。</textarea>
+        <textarea id="subtitle" placeholder="例如 每一次扫码都能直接进入微信收听页，适合海报、名片和社群传播。">扫码即可收听班级小故事，适合班级分享、活动留念与成长记录，页面长期有效，可反复扫码。</textarea>
       </div>
 
       <div class="field two-col">
@@ -357,7 +365,7 @@
         </div>
         <div>
           <label for="badge">角标文字</label>
-          <input id="badge" value="朗读音频" placeholder="例如 新歌首发">
+           <input id="badge" value="班级故事" placeholder="例如 新歌首发">
         </div>
       </div>
 
@@ -371,13 +379,13 @@
       <div class="preview-card">
         <div class="poster" id="poster">
           <div class="poster-head">
-            <span class="chip" id="badgeText">朗读音频</span>
+            <span class="chip" id="badgeText">班级故事</span>
             <span class="chip" id="themeText">故事朗读</span>
           </div>
 
           <div class="poster-copy">
-            <h2 id="posterTitle">read aloud</h2>
-            <p id="posterSubtitle">微信扫码即可收听 read aloud，适合朗读分享，页面长期有效，可反复扫码。</p>
+            <h2 id="posterTitle">班级小故事</h2>
+            <p id="posterSubtitle">扫码即可收听班级小故事，适合班级分享、活动留念与成长记录，页面长期有效，可反复扫码。</p>
           </div>
 
           <div class="poster-body">
@@ -388,8 +396,8 @@
           </div>
 
           <div class="poster-foot">
-            <div class="foot-note">扫码进入专属朗读收听页，支持微信内打开、长期分享、不限扫码次数。</div>
-            <div class="chip" id="scanHint">Scan to Play</div>
+            <div class="foot-note">扫码进入专属班级故事收听页，支持微信内打开、长期分享、不限扫码次数。</div>
+            <div class="chip" id="scanHint">扫码收听</div>
           </div>
         </div>
       </div>
@@ -465,9 +473,17 @@
     });
   }
 
+  function encodePathSegments(path) {
+    return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+  }
+
+  function buildAutoAudioUrl() {
+    return 'https://cdn.jsdelivr.net/gh/' + username.value.trim() + '/' + repo.value.trim() + '@' + branch.value.trim() + '/' + encodePathSegments(fileName.value.trim());
+  }
+
   function buildAudioUrl() {
     if (directAudioUrl.value.trim()) return directAudioUrl.value.trim();
-    return 'https://cdn.jsdelivr.net/gh/' + username.value.trim() + '/' + repo.value.trim() + '@' + branch.value.trim() + '/' + fileName.value.trim();
+    return buildAutoAudioUrl();
   }
 
   function buildPageUrl(audioUrl) {
@@ -535,6 +551,11 @@
     if (params.get('theme') && themeMap[params.get('theme')]) themeSelect.value = params.get('theme');
     if (params.get('badge')) badgeInput.value = params.get('badge');
   }
+
+  [username, repo, branch, fileName, directAudioUrl, titleInput, subtitleInput, themeSelect, badgeInput].forEach(node => {
+    node.addEventListener('input', generate);
+    node.addEventListener('change', generate);
+  });
 
   generateBtn.addEventListener('click', generate);
   downloadBtn.addEventListener('click', downloadPoster);
