@@ -464,59 +464,59 @@
   const themeMap = {
     aurora: {
       name: '空灵氛围',
-      bg1: '#0d2238',
-      bg2: '#132b45',
-      accent: '#85e1d6',
-      accentSoft: '#eef7ef',
-      gold: '#f0d786'
+      bg1: '#1f5eff',
+      bg2: '#32c5ff',
+      accent: '#8af4ff',
+      accentSoft: '#f3fffe',
+      gold: '#ffe27a'
     },
     podcast: {
       name: '播客对谈',
-      bg1: '#24162f',
-      bg2: '#3a2350',
-      accent: '#f39bc5',
-      accentSoft: '#fff0f6',
-      gold: '#ffd38c'
+      bg1: '#ff5b8f',
+      bg2: '#ff8a5b',
+      accent: '#ffd0dd',
+      accentSoft: '#fff5f7',
+      gold: '#ffe08a'
     },
     story: {
       name: '故事朗读',
-      bg1: '#10273f',
-      bg2: '#163652',
-      accent: '#8fd8d0',
-      accentSoft: '#effaf6',
-      gold: '#ecd38a'
+      bg1: '#ff7a59',
+      bg2: '#ffb347',
+      accent: '#ffe3b0',
+      accentSoft: '#fffaf0',
+      gold: '#fff08a'
     },
     memo: {
       name: '语音备忘',
-      bg1: '#112a24',
-      bg2: '#1d453b',
-      accent: '#8de0bf',
-      accentSoft: '#eefcf4',
-      gold: '#f4e3ab'
+      bg1: '#14b87a',
+      bg2: '#55d68d',
+      accent: '#bff6d7',
+      accentSoft: '#f3fff8',
+      gold: '#ffe49a'
     },
     radio: {
       name: '电台时刻',
-      bg1: '#301b2d',
-      bg2: '#492645',
-      accent: '#ff9ca8',
-      accentSoft: '#fff0f0',
-      gold: '#f6d46f'
+      bg1: '#7a43ff',
+      bg2: '#ff5fd2',
+      accent: '#ffc7f0',
+      accentSoft: '#fff4fd',
+      gold: '#ffd86b'
     },
     luxe: {
       name: '金色奢感',
-      bg1: '#28190e',
-      bg2: '#4b2d1b',
-      accent: '#f1c779',
-      accentSoft: '#fff5e4',
-      gold: '#ffe6a4'
+      bg1: '#f08a24',
+      bg2: '#f7c948',
+      accent: '#ffe1a6',
+      accentSoft: '#fff9ec',
+      gold: '#fff0a8'
     },
     forest: {
       name: '自然清听',
-      bg1: '#0e2519',
-      bg2: '#173627',
-      accent: '#9fe0bc',
-      accentSoft: '#f3fff6',
-      gold: '#dff3ad'
+      bg1: '#18a957',
+      bg2: '#73d13d',
+      accent: '#d6f8b8',
+      accentSoft: '#f8fff0',
+      gold: '#fff18c'
     }
   };
 
@@ -632,7 +632,12 @@
 
   function applyTheme() {
     const theme = themeMap[themeSelect.value];
-    poster.style.background = 'linear-gradient(145deg, ' + theme.bg1 + ', ' + theme.bg2 + ' 58%, ' + theme.accent + ')';
+    poster.style.background = [
+      'radial-gradient(circle at 18% 18%, ' + withAlpha(theme.accentSoft, 0.28) + ', transparent 28%)',
+      'radial-gradient(circle at 85% 14%, ' + withAlpha(theme.gold, 0.24) + ', transparent 24%)',
+      'radial-gradient(circle at 20% 88%, ' + withAlpha(theme.accent, 0.26) + ', transparent 26%)',
+      'linear-gradient(145deg, ' + theme.bg1 + ', ' + theme.bg2 + ' 58%, ' + theme.accent + ')'
+    ].join(', ');
     poster.style.setProperty('--poster-chip-bg', withAlpha(theme.accentSoft, 0.18));
     poster.style.setProperty('--poster-chip-text', theme.accentSoft);
     poster.style.setProperty('--poster-panel-bg', withAlpha(theme.accent, 0.16));
