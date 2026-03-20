@@ -532,13 +532,11 @@
   }
 
   const durationCacheKeyPrefix = 'audio-qrcode-duration:';
-  const streamDownloadChunkSize = 1024 * 1024;
   let knownDurationSeconds = null;
   let downloadInProgress = false;
   let downloadStatusTimer = null;
   let downloadAbortController = null;
   let downloadPreviousStatus = '';
-  let downloadSession = null;
   let hasStartedPlayback = false;
 
   function normalizeAudioUrl(url) {
@@ -710,14 +708,6 @@
     downloadBtn.textContent = isDownloading ? '暂停下载' : '下载音频';
   }
 
-  function isProbablyMobileBrowser() {
-    return /Android|iPhone|iPad|iPod|Mobile|HarmonyOS|Windows Phone/i.test(navigator.userAgent);
-  }
-
-  function canUseStreamDownload() {
-    return typeof window.showSaveFilePicker === 'function' && !isProbablyMobileBrowser();
-  }
-
   function stopDownloadStatusAnimation() {
     if (downloadStatusTimer) {
       window.clearInterval(downloadStatusTimer);
@@ -754,111 +744,6 @@
     }, 1600);
   }
 
-  async function getRemoteFileSize(url, signal) {
-    try {
-      const headResponse = await fetch(url, { method: 'HEAD', cache: 'no-store', signal });
-      const contentLength = Number(headResponse.headers.get('Content-Length'));
-
-      if (headResponse.ok && Number.isFinite(contentLength) && contentLength > 0) {
-        return contentLength;
-      }
-    } catch (error) {
-    }
-
-    const rangeResponse = await fetch(url, {
-      cache: 'no-store',
-      signal,
-      headers: { Range: 'bytes=0-0' }
-    });
-    const contentRange = rangeResponse.headers.get('Content-Range') || '';
-    const match = contentRange.match(/\/([0-9]+)$/);
-
-    if (rangeResponse.ok && match) {
-      return Number(match[1]);
-    }
-
-    throw new Error('missing file size');
-  }
-
-  async function ensureDownloadSession(url, fileName, signal) {
-    const normalizedUrl = normalizeAudioUrl(url);
-
-    if (
-      downloadSession &&
-      downloadSession.url === normalizedUrl &&
-      downloadSession.fileName === fileName &&
-      downloadSession.fileHandle &&
-      downloadSession.downloadedBytes < downloadSession.totalBytes
-    ) {
-      return downloadSession;
-    }
-
-    const fileHandle = await window.showSaveFilePicker({
-      suggestedName: fileName,
-      types: [
-        {
-          description: 'Audio File',
-          accept: {
-            'audio/mp4': ['.m4a'],
-            'audio/*': ['.m4a', '.mp3']
-          }
-        }
-      ]
-    });
-    const totalBytes = await getRemoteFileSize(url, signal);
-
-    downloadSession = {
-      url: normalizedUrl,
-      fileName,
-      fileHandle,
-      totalBytes,
-      downloadedBytes: 0
-    };
-
-    return downloadSession;
-  }
-
-  async function runStreamDownload(session, signal) {
-    const writable = await session.fileHandle.createWritable({ keepExistingData: true });
-
-    try {
-      while (session.downloadedBytes < session.totalBytes) {
-        const start = session.downloadedBytes;
-        const end = Math.min(start + streamDownloadChunkSize - 1, session.totalBytes - 1);
-        const response = await fetch(session.url, {
-          cache: 'no-store',
-          signal,
-          headers: { Range: 'bytes=' + start + '-' + end }
-        });
-
-        if (!response.ok) {
-          throw new Error('chunk download failed');
-        }
-
-        const chunk = await response.arrayBuffer();
-
-        if (signal.aborted) {
-          return;
-        }
-
-        await writable.write({
-          type: 'write',
-          position: start,
-          data: new Uint8Array(chunk)
-        });
-        session.downloadedBytes = start + chunk.byteLength;
-      }
-    } finally {
-      await writable.close().catch(() => {});
-    }
-  }
-
-  function startNativeDownload(url, fileName) {
-    setDownloadButtonState(false);
-    triggerFileDownload(url, fileName);
-    restoreDownloadStatus('已交给浏览器下载');
-  }
-
   function cancelDownload() {
     if (!downloadInProgress) {
       return;
@@ -883,32 +768,37 @@
     }
 
     const controller = new AbortController();
-    const fileName = buildDownloadName(activeAudioUrl, 'audio.m4a');
-    downloadPreviousStatus = statusText.textContent;
-
-    if (!canUseStreamDownload()) {
-      startNativeDownload(activeAudioUrl, fileName);
-      return;
-    }
-
     downloadInProgress = true;
     downloadAbortController = controller;
+    const fileName = buildDownloadName(activeAudioUrl, 'audio.m4a');
+    downloadPreviousStatus = statusText.textContent;
     setDownloadButtonState(true);
     startDownloadStatusAnimation();
 
     try {
-      const session = await ensureDownloadSession(activeAudioUrl, fileName, controller.signal);
-      await runStreamDownload(session, controller.signal);
+      const response = await fetch(activeAudioUrl, { cache: 'no-store', signal: controller.signal });
+
+      if (!response.ok) {
+        throw new Error('download request failed');
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      try {
+        triggerFileDownload(objectUrl, fileName);
+      } finally {
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      }
 
       restoreDownloadStatus('已开始下载');
-      downloadSession = null;
     } catch (error) {
       if (controller.signal.aborted) {
         return;
       }
 
-      downloadSession = null;
-      startNativeDownload(activeAudioUrl, fileName);
+      triggerFileDownload(activeAudioUrl, fileName);
+      restoreDownloadStatus('已打开音频链接');
     } finally {
       stopDownloadStatusAnimation();
 
