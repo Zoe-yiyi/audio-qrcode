@@ -533,6 +533,7 @@
 
   const durationCacheKeyPrefix = 'audio-qrcode-duration:';
   let knownDurationSeconds = null;
+  let downloadInProgress = false;
 
   function normalizeAudioUrl(url) {
     try {
@@ -686,6 +687,60 @@
     audio.load();
     downloadBtn.href = url;
     downloadBtn.download = buildDownloadName(url, 'audio.m4a');
+  }
+
+  function triggerFileDownload(url, fileName) {
+    const tempLink = document.createElement('a');
+    tempLink.href = url;
+    tempLink.download = fileName;
+    tempLink.rel = 'noopener';
+    tempLink.style.display = 'none';
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    tempLink.remove();
+  }
+
+  async function handleDownload() {
+    if (downloadInProgress) {
+      return;
+    }
+
+    downloadInProgress = true;
+    downloadBtn.setAttribute('aria-disabled', 'true');
+    const fileName = buildDownloadName(activeAudioUrl, 'audio.m4a');
+    const previousStatus = statusText.textContent;
+    statusText.textContent = '正在准备下载...';
+
+    try {
+      const response = await fetch(activeAudioUrl, { cache: 'no-store' });
+
+      if (!response.ok) {
+        throw new Error('download request failed');
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      try {
+        triggerFileDownload(objectUrl, fileName);
+      } finally {
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      }
+
+      statusText.textContent = '已开始下载';
+    } catch (error) {
+      triggerFileDownload(activeAudioUrl, fileName);
+      statusText.textContent = '已打开音频链接';
+    } finally {
+      downloadInProgress = false;
+      downloadBtn.removeAttribute('aria-disabled');
+
+      window.setTimeout(() => {
+        if (statusText.textContent === '已开始下载' || statusText.textContent === '已打开音频链接') {
+          statusText.textContent = audio.paused ? previousStatus : '正在播放';
+        }
+      }, 1600);
+    }
   }
 
   function setDurationDisplay(seconds) {
@@ -880,6 +935,11 @@
     const nextSpeed = speeds[(currentIndex + 1) % speeds.length];
     audio.playbackRate = nextSpeed;
     speedBtn.textContent = nextSpeed.toFixed(2).replace(/\.00$/, '.0') + 'x';
+  });
+
+  downloadBtn.addEventListener('click', async event => {
+    event.preventDefault();
+    await handleDownload();
   });
 
   seekBar.addEventListener('input', () => {
