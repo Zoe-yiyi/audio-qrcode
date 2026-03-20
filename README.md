@@ -1,8 +1,8 @@
-# 微信音频二维码 v1.2.2
+# 微信音频二维码 v1.2.3
 
 一个基于 GitHub Pages 的单音频分享方案。当前示例已经替换为《班级小故事》音频，扫码后进入播放页，可在手机浏览器、微信场景和桌面浏览器中收听、控制进度并下载音频。
 
-## v1.2.2 当前能力
+## v1.2.3 当前能力
 
 - 移动优先的单页播放器，适合扫码直达收听
 - 7 套主题：`aurora`、`podcast`、`story`、`memo`、`radio`、`luxe`、`forest`
@@ -47,7 +47,8 @@
 - `PRD-v1.1.md`：v1.1 历史 PRD
 - `PRD-v1.2.md`：v1.2 历史 PRD
 - `PRD-v1.2.1.md`：v1.2.1 历史 PRD
-- `PRD-v1.2.2.md`：与当前代码一致的 PRD
+- `PRD-v1.2.2.md`：v1.2.2 历史 PRD
+- `PRD-v1.2.3.md`：与当前代码一致的 PRD
 - `README.md`：项目总说明
 - `项目说明.txt`：文件清单与功能摘要
 - `GitHub-Token-创建说明.md`：Token 创建说明
@@ -90,6 +91,14 @@ https://<github-username>.github.io/audio-qrcode/?audio=<encoded-audio-url>&titl
 - 播放页：`https://zoe-yiyi.github.io/audio-qrcode/`
 - 生成器：`https://zoe-yiyi.github.io/audio-qrcode/qrcode-generator.html`
 - 默认音频：`https://zoe-yiyi.github.io/audio-qrcode/audio.m4a`
+
+## v1.2.3 更新记录
+
+- 保留 v1.2.2 的总时长预取、默认音频时长兜底与本地缓存逻辑
+- 保留下载音频稳定性修复：优先抓取 blob，再回退到直接打开音频链接
+- 保留下载过程中的动态“正在下载中...”状态反馈
+- 恢复“暂停下载”按钮切换，允许用户在下载过程中主动中断当前请求
+- 继续保留默认音频首播链路优化，降低首次点击播放时前几秒无声或声音延迟的概率
 
 ## v1.2.2 更新记录
 

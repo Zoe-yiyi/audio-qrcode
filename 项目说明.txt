@@ -25,21 +25,24 @@
    v1.2.1 历史 PRD 文档。
 
 9. PRD-v1.2.2.md
+   v1.2.2 历史 PRD 文档。
+
+10. PRD-v1.2.3.md
    与当前代码实现保持一致的 PRD 文档。
 
-10. GitHub-Token-创建说明.md
+11. GitHub-Token-创建说明.md
    GitHub Token 的创建与权限说明。
 
-11. GitHub-Pages-Build-and-Deployment-说明.md
+12. GitHub-Pages-Build-and-Deployment-说明.md
      GitHub Pages 的发布配置说明。
 
-12. 🚀快速开始-三分钟完成.md
+13. 🚀快速开始-三分钟完成.md
       中文快速部署指南。
 
-13. 立即开始-三步完成.bat
+14. 立即开始-三步完成.bat
       Windows 一键打开二维码生成器。
 
-14. deploy.sh
+15. deploy.sh
       macOS/Linux 一键打开二维码生成器。
 
 当前版本功能
