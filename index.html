@@ -535,8 +535,6 @@
   let knownDurationSeconds = null;
   let downloadInProgress = false;
   let downloadStatusTimer = null;
-  let downloadAbortController = null;
-  let downloadPreviousStatus = '';
   let hasStartedPlayback = false;
 
   function normalizeAudioUrl(url) {
@@ -704,10 +702,6 @@
     tempLink.remove();
   }
 
-  function setDownloadButtonState(isDownloading) {
-    downloadBtn.textContent = isDownloading ? '暂停下载' : '下载音频';
-  }
-
   function stopDownloadStatusAnimation() {
     if (downloadStatusTimer) {
       window.clearInterval(downloadStatusTimer);
@@ -721,7 +715,7 @@
     let frame = 0;
 
     function render() {
-      const dots = '…'.repeat((frame % 3) + 1);
+      const dots = '.'.repeat((frame % 3) + 1);
       statusText.textContent = '正在下载中' + dots;
       frame += 1;
     }
@@ -730,53 +724,19 @@
     downloadStatusTimer = window.setInterval(render, 420);
   }
 
-  function restoreDownloadStatus(message) {
-    statusText.textContent = message;
-
-    window.setTimeout(() => {
-      if (
-        statusText.textContent === '已开始下载' ||
-        statusText.textContent === '已打开音频链接' ||
-        statusText.textContent === '已暂停下载'
-      ) {
-        statusText.textContent = audio.paused ? downloadPreviousStatus : '正在播放';
-      }
-    }, 1600);
-  }
-
-  function cancelDownload() {
-    if (!downloadInProgress) {
-      return;
-    }
-
-    downloadInProgress = false;
-    stopDownloadStatusAnimation();
-
-    if (downloadAbortController) {
-      downloadAbortController.abort();
-      downloadAbortController = null;
-    }
-
-    setDownloadButtonState(false);
-    restoreDownloadStatus('已暂停下载');
-  }
-
   async function handleDownload() {
     if (downloadInProgress) {
-      cancelDownload();
       return;
     }
 
-    const controller = new AbortController();
     downloadInProgress = true;
-    downloadAbortController = controller;
+    downloadBtn.setAttribute('aria-disabled', 'true');
     const fileName = buildDownloadName(activeAudioUrl, 'audio.m4a');
-    downloadPreviousStatus = statusText.textContent;
-    setDownloadButtonState(true);
+    const previousStatus = statusText.textContent;
     startDownloadStatusAnimation();
 
     try {
-      const response = await fetch(activeAudioUrl, { cache: 'no-store', signal: controller.signal });
+      const response = await fetch(activeAudioUrl, { cache: 'no-store' });
 
       if (!response.ok) {
         throw new Error('download request failed');
@@ -791,27 +751,22 @@
         window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       }
 
-      restoreDownloadStatus('已开始下载');
+      stopDownloadStatusAnimation();
+      statusText.textContent = '已开始下载';
     } catch (error) {
-      if (controller.signal.aborted) {
-        return;
-      }
-
+      stopDownloadStatusAnimation();
       triggerFileDownload(activeAudioUrl, fileName);
-      restoreDownloadStatus('已打开音频链接');
+      statusText.textContent = '已打开音频链接';
     } finally {
+      downloadInProgress = false;
+      downloadBtn.removeAttribute('aria-disabled');
       stopDownloadStatusAnimation();
 
-      if (downloadAbortController === controller) {
-        downloadAbortController = null;
-      }
-
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      downloadInProgress = false;
-      setDownloadButtonState(false);
+      window.setTimeout(() => {
+        if (statusText.textContent === '已开始下载' || statusText.textContent === '已打开音频链接') {
+          statusText.textContent = audio.paused ? previousStatus : '正在播放';
+        }
+      }, 1600);
     }
   }
 
