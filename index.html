@@ -634,6 +634,42 @@
   let fallbackAudioUrl = buildFallbackAudioUrl(activeAudioUrl);
   let playRequested = false;
 
+  audio.addEventListener('loadedmetadata', updateProgress);
+  audio.addEventListener('durationchange', updateProgress);
+  audio.addEventListener('timeupdate', updateProgress);
+  audio.addEventListener('pause', () => setPlayingState(false));
+  audio.addEventListener('play', () => setPlayingState(true));
+  audio.addEventListener('canplay', async () => {
+    if (!playRequested || !audio.paused) {
+      return;
+    }
+
+    try {
+      await audio.play();
+    } catch (error) {
+      statusText.textContent = '请点击后播放';
+    }
+  });
+  audio.addEventListener('ended', () => {
+    playRequested = false;
+    setPlayingState(false);
+    statusText.textContent = '播放完成';
+  });
+  audio.addEventListener('error', () => {
+    if (fallbackAudioUrl && activeAudioUrl !== fallbackAudioUrl) {
+      activeAudioUrl = fallbackAudioUrl;
+      fallbackAudioUrl = null;
+      syncAudioLinks(activeAudioUrl);
+      statusText.textContent = '正在切换备用音频...';
+      audio.load();
+      return;
+    }
+
+    playRequested = false;
+    setPlayingState(false);
+    statusText.textContent = '音频加载失败';
+  });
+
   applyTheme(themeKey);
   title.textContent = titleText;
   renderSubtitle(subtitleText);
@@ -680,40 +716,6 @@
     audio.currentTime = (Number(seekBar.value) / 100) * audio.duration;
   });
 
-  audio.addEventListener('loadedmetadata', updateProgress);
-  audio.addEventListener('timeupdate', updateProgress);
-  audio.addEventListener('pause', () => setPlayingState(false));
-  audio.addEventListener('play', () => setPlayingState(true));
-  audio.addEventListener('canplay', async () => {
-    if (!playRequested || !audio.paused) {
-      return;
-    }
-
-    try {
-      await audio.play();
-    } catch (error) {
-      statusText.textContent = '请点击后播放';
-    }
-  });
-  audio.addEventListener('ended', () => {
-    playRequested = false;
-    setPlayingState(false);
-    statusText.textContent = '播放完成';
-  });
-  audio.addEventListener('error', () => {
-    if (fallbackAudioUrl && activeAudioUrl !== fallbackAudioUrl) {
-      activeAudioUrl = fallbackAudioUrl;
-      fallbackAudioUrl = null;
-      syncAudioLinks(activeAudioUrl);
-      statusText.textContent = '正在切换备用音频...';
-      audio.load();
-      return;
-    }
-
-    playRequested = false;
-    setPlayingState(false);
-    statusText.textContent = '音频加载失败';
-  });
 </script>
 </body>
 </html>

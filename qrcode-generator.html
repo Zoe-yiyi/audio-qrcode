@@ -373,8 +373,13 @@
       </div>
 
       <div class="field">
-        <label for="subtitle">副标题</label>
-        <textarea id="subtitle" placeholder="例如 每一次扫码都能直接进入微信收听页，适合海报、名片和社群传播。">扫码即可收听班级小故事，适合班级分享、活动留念与成长记录，页面长期有效，可反复扫码。</textarea>
+        <label for="posterSubtitleInput">海报副标题</label>
+        <textarea id="posterSubtitleInput" placeholder="例如 扫码即可收听班级小故事，适合班级分享、活动留念与成长记录。">扫码即可收听班级小故事，适合班级分享、活动留念与成长记录，页面长期有效，可反复扫码。</textarea>
+      </div>
+
+      <div class="field">
+        <label for="playerSubtitleInput">播放页副标题</label>
+        <textarea id="playerSubtitleInput" placeholder="例如 欢迎来到班级小故事，打开即可收听班级里的温暖片段与成长声音。">欢迎来到班级小故事，打开即可收听班级里的温暖片段与成长声音。</textarea>
       </div>
 
       <div class="field two-col">
@@ -444,7 +449,8 @@
   const fileName = document.getElementById('fileName');
   const directAudioUrl = document.getElementById('directAudioUrl');
   const titleInput = document.getElementById('title');
-  const subtitleInput = document.getElementById('subtitle');
+  const posterSubtitleInput = document.getElementById('posterSubtitleInput');
+  const playerSubtitleInput = document.getElementById('playerSubtitleInput');
   const themeSelect = document.getElementById('theme');
   const badgeInput = document.getElementById('badge');
   const badgeText = document.getElementById('badgeText');
@@ -551,7 +557,7 @@
     const params = new URLSearchParams({
       audio: audioUrl,
       title: titleInput.value.trim(),
-      subtitle: subtitleInput.value.trim(),
+      subtitle: playerSubtitleInput.value.trim(),
       theme: themeSelect.value
     });
     return buildPagesBaseUrl() + '?' + params.toString();
@@ -647,7 +653,7 @@
     themeText.textContent = theme.name;
     badgeText.textContent = badgeInput.value.trim() || '微信扫码收听';
     posterTitle.textContent = titleInput.value.trim() || '扫码收听我的音频';
-    renderPosterSubtitle(subtitleInput.value.trim() || '微信扫码即播，页面长期有效。');
+    renderPosterSubtitle(posterSubtitleInput.value.trim() || '微信扫码即播，页面长期有效。');
   }
 
   let qr;
@@ -726,12 +732,18 @@
     if (params.get('file')) fileName.value = params.get('file');
     if (params.get('audio')) directAudioUrl.value = params.get('audio');
     if (params.get('title')) titleInput.value = params.get('title');
-    if (params.get('subtitle')) subtitleInput.value = params.get('subtitle');
+    if (params.get('subtitle')) {
+      playerSubtitleInput.value = params.get('subtitle');
+      if (!params.get('posterSubtitle')) {
+        posterSubtitleInput.value = params.get('subtitle');
+      }
+    }
+    if (params.get('posterSubtitle')) posterSubtitleInput.value = params.get('posterSubtitle');
     if (params.get('theme') && themeMap[params.get('theme')]) themeSelect.value = params.get('theme');
     if (params.get('badge')) badgeInput.value = params.get('badge');
   }
 
-  [username, repo, branch, fileName, directAudioUrl, titleInput, subtitleInput, themeSelect, badgeInput].forEach(node => {
+  [username, repo, branch, fileName, directAudioUrl, titleInput, posterSubtitleInput, playerSubtitleInput, themeSelect, badgeInput].forEach(node => {
     node.addEventListener('input', generate);
     node.addEventListener('change', generate);
   });
