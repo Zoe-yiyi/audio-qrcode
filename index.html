@@ -531,10 +531,70 @@
     return minutes + ':' + seconds;
   }
 
+  const durationCacheKeyPrefix = 'audio-qrcode-duration:';
+  let knownDurationSeconds = null;
+
+  function normalizeAudioUrl(url) {
+    try {
+      return new URL(url, window.location.href).href;
+    } catch (error) {
+      return url;
+    }
+  }
+
+  function getDurationStorageKey(url) {
+    return durationCacheKeyPrefix + normalizeAudioUrl(url);
+  }
+
+  function readCachedDuration(url) {
+    try {
+      const value = window.localStorage.getItem(getDurationStorageKey(url));
+      const seconds = Number(value);
+      return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeCachedDuration(url, seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(getDurationStorageKey(url), String(seconds));
+    } catch (error) {
+    }
+  }
+
+  function getBundledDurationHint(url) {
+    const defaultAudioUrl = normalizeAudioUrl(resolveDefaultAudioUrl());
+
+    if (normalizeAudioUrl(url) === defaultAudioUrl) {
+      return 310.590667;
+    }
+
+    return null;
+  }
+
+  function primeDurationDisplay(url) {
+    knownDurationSeconds = readCachedDuration(url) || getBundledDurationHint(url);
+    duration.textContent = formatTime(knownDurationSeconds);
+  }
+
   function updateProgress() {
+    const effectiveDuration = Number.isFinite(audio.duration) && audio.duration > 0
+      ? audio.duration
+      : knownDurationSeconds;
+
+    if (Number.isFinite(audio.duration) && audio.duration > 0) {
+      knownDurationSeconds = audio.duration;
+      writeCachedDuration(activeAudioUrl, audio.duration);
+    }
+
     currentTime.textContent = formatTime(audio.currentTime);
-    duration.textContent = formatTime(audio.duration);
-    const percent = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+    duration.textContent = formatTime(effectiveDuration);
+    const percent = effectiveDuration ? (audio.currentTime / effectiveDuration) * 100 : 0;
     seekBar.value = percent;
     seekBar.style.setProperty('--progress', percent + '%');
   }
@@ -621,6 +681,7 @@
 
   function syncAudioLinks(url) {
     audio.pause();
+    primeDurationDisplay(url);
     audio.src = url;
     audio.load();
     downloadBtn.href = url;
@@ -632,6 +693,8 @@
       return;
     }
 
+    knownDurationSeconds = seconds;
+    writeCachedDuration(activeAudioUrl, seconds);
     duration.textContent = formatTime(seconds);
   }
 
@@ -646,6 +709,12 @@
       }
 
       setDurationDisplay(seconds);
+    }
+
+    const hintedDuration = readCachedDuration(url) || getBundledDurationHint(url);
+
+    if (hintedDuration) {
+      updateIfCurrent(hintedDuration);
     }
 
     if (Number.isFinite(audio.duration) && audio.duration > 0) {

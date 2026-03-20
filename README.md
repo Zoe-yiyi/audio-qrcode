@@ -1,8 +1,8 @@
-# 微信音频二维码 v1.2
+# 微信音频二维码 v1.2.1
 
 一个基于 GitHub Pages 的单音频分享方案。当前示例已经替换为《班级小故事》音频，扫码后进入播放页，可在手机浏览器、微信场景和桌面浏览器中收听、控制进度并下载音频。
 
-## v1.2 当前能力
+## v1.2.1 当前能力
 
 - 移动优先的单页播放器，适合扫码直达收听
 - 7 套主题：`aurora`、`podcast`、`story`、`memo`、`radio`、`luxe`、`forest`
@@ -15,6 +15,8 @@
 - 海报导出：支持浏览器内生成二维码并下载 PNG 海报
 - 状态反馈：生成器带按钮忙碌状态、状态提示、脚本加载校验
 - 音频兼容：默认使用 GitHub Pages 同域音频地址，播放器在特定外链失败时会尝试回退到站内音频
+- 时长预取：进入播放页后会优先尝试预取音频总时长，并在可用时提前更新右侧时长显示
+- 时长兜底：默认 `audio.m4a` 内置时长提示，且已支持基于 `localStorage` 的时长缓存，减少再次进入时仍显示 `00:00` 的概率
 
 ## 当前代码对应的实际行为
 
@@ -26,6 +28,7 @@
 - 生成器里的“分支名”字段会保留在表单和 URL 预填中，但默认 GitHub Pages 音频路径本身不依赖分支名
 - 当前仓库内的 `audio.m4a` 已替换为《班级小故事》并做过浏览器流式播放优化
 - 海报页与播放页主题已统一为更有品质感的色彩体系
+- 默认 `audio.m4a` 现在带有内置时长提示，播放器也会缓存已成功读取的音频总时长
 
 ## 项目文件
 
@@ -34,7 +37,8 @@
 - `qrcode-generator.html`：二维码海报生成器
 - `PRD-v1.0.md`：v1.0 历史 PRD
 - `PRD-v1.1.md`：v1.1 历史 PRD
-- `PRD-v1.2.md`：与当前代码一致的 PRD
+- `PRD-v1.2.md`：v1.2 历史 PRD
+- `PRD-v1.2.1.md`：与当前代码一致的 PRD
 - `README.md`：项目总说明
 - `项目说明.txt`：文件清单与功能摘要
 - `GitHub-Token-创建说明.md`：Token 创建说明
@@ -78,6 +82,14 @@ https://<github-username>.github.io/audio-qrcode/?audio=<encoded-audio-url>&titl
 - 生成器：`https://zoe-yiyi.github.io/audio-qrcode/qrcode-generator.html`
 - 默认音频：`https://zoe-yiyi.github.io/audio-qrcode/audio.m4a`
 
+## v1.2.1 更新记录
+
+- 延续 v1.2 的主题升级、班级故事场景优化和副标题拆分能力
+- 播放页新增总时长预取逻辑，进入页面后会优先尝试读取音频 metadata 并更新右侧时长
+- 当 metadata 无法快速拿到时，额外尝试通过 `AudioContext.decodeAudioData()` 获取音频时长
+- 为默认 `audio.m4a` 增加内置时长提示，并对成功读取的音频时长做本地缓存，降低初始仍显示 `00:00` 的概率
+- 继续保留默认同域音频与外链失败回退机制
+
 ## v1.2 更新记录
 
 - 保留 v1.1 的音频加载与二维码生成修复
@@ -92,6 +104,7 @@ https://<github-username>.github.io/audio-qrcode/?audio=<encoded-audio-url>&titl
 
 - 仍然是单音频分享方案，不支持多音频列表
 - 首次播放通常需要用户手动点击触发
+- 播放页总时长预显示逻辑已加入代码，但不同浏览器与缓存环境下的线上表现仍建议继续验证
 - 海报导出仍依赖外部 CDN 脚本加载
 - 海报导出格式仍为 PNG
 - 未提供后台、统计、登录、Logo 上传或 JPG 导出
