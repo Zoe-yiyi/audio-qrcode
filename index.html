@@ -627,6 +627,106 @@
     downloadBtn.download = buildDownloadName(url, 'audio.m4a');
   }
 
+  function setDurationDisplay(seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return;
+    }
+
+    duration.textContent = formatTime(seconds);
+  }
+
+  let durationRequestId = 0;
+
+  async function preloadDuration(url) {
+    const requestId = ++durationRequestId;
+
+    function updateIfCurrent(seconds) {
+      if (requestId !== durationRequestId) {
+        return;
+      }
+
+      setDurationDisplay(seconds);
+    }
+
+    if (Number.isFinite(audio.duration) && audio.duration > 0) {
+      updateIfCurrent(audio.duration);
+      return;
+    }
+
+    try {
+      const probe = new Audio();
+      probe.preload = 'metadata';
+      probe.src = url;
+
+      const metadataDuration = await new Promise((resolve, reject) => {
+        const timeoutId = window.setTimeout(() => reject(new Error('metadata timeout')), 2000);
+
+        function cleanup() {
+          window.clearTimeout(timeoutId);
+          probe.removeEventListener('loadedmetadata', onLoadedMetadata);
+          probe.removeEventListener('durationchange', onDurationChange);
+          probe.removeEventListener('error', onError);
+        }
+
+        function finish(value) {
+          cleanup();
+          resolve(value);
+        }
+
+        function onLoadedMetadata() {
+          finish(probe.duration);
+        }
+
+        function onDurationChange() {
+          if (Number.isFinite(probe.duration) && probe.duration > 0) {
+            finish(probe.duration);
+          }
+        }
+
+        function onError() {
+          cleanup();
+          reject(new Error('metadata error'));
+        }
+
+        probe.addEventListener('loadedmetadata', onLoadedMetadata);
+        probe.addEventListener('durationchange', onDurationChange);
+        probe.addEventListener('error', onError);
+        probe.load();
+      });
+
+      updateIfCurrent(metadataDuration);
+      return;
+    } catch (error) {
+    }
+
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContextClass) {
+        return;
+      }
+
+      const response = await fetch(url, { cache: 'force-cache' });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const buffer = await response.arrayBuffer();
+      const audioContext = new AudioContextClass();
+
+      try {
+        const decodedBuffer = await audioContext.decodeAudioData(buffer.slice(0));
+        updateIfCurrent(decodedBuffer.duration);
+      } finally {
+        if (typeof audioContext.close === 'function') {
+          audioContext.close().catch(() => {});
+        }
+      }
+    } catch (error) {
+    }
+  }
+
   const titleText = params.get('title') || '班级小故事';
   const subtitleText = params.get('subtitle') || '欢迎来到班级小故事, 扫码即可收听班级里的温暖片段与成长声音。';
   const themeKey = params.get('theme') || 'aurora';
@@ -661,6 +761,7 @@
       fallbackAudioUrl = null;
       syncAudioLinks(activeAudioUrl);
       statusText.textContent = '正在切换备用音频...';
+      preloadDuration(activeAudioUrl);
       audio.load();
       return;
     }
@@ -676,6 +777,7 @@
   document.title = titleText + ' - 微信扫码收听';
   syncAudioLinks(activeAudioUrl);
   updateProgress();
+  preloadDuration(activeAudioUrl);
 
   playBtn.addEventListener('click', async () => {
     if (audio.paused) {
