@@ -534,6 +534,8 @@
   const durationCacheKeyPrefix = 'audio-qrcode-duration:';
   let knownDurationSeconds = null;
   let downloadInProgress = false;
+  let downloadStatusTimer = null;
+  let hasStartedPlayback = false;
 
   function normalizeAudioUrl(url) {
     try {
@@ -700,6 +702,28 @@
     tempLink.remove();
   }
 
+  function stopDownloadStatusAnimation() {
+    if (downloadStatusTimer) {
+      window.clearInterval(downloadStatusTimer);
+      downloadStatusTimer = null;
+    }
+  }
+
+  function startDownloadStatusAnimation() {
+    stopDownloadStatusAnimation();
+
+    let frame = 0;
+
+    function render() {
+      const dots = '.'.repeat((frame % 3) + 1);
+      statusText.textContent = '正在下载中' + dots;
+      frame += 1;
+    }
+
+    render();
+    downloadStatusTimer = window.setInterval(render, 420);
+  }
+
   async function handleDownload() {
     if (downloadInProgress) {
       return;
@@ -709,7 +733,7 @@
     downloadBtn.setAttribute('aria-disabled', 'true');
     const fileName = buildDownloadName(activeAudioUrl, 'audio.m4a');
     const previousStatus = statusText.textContent;
-    statusText.textContent = '正在准备下载...';
+    startDownloadStatusAnimation();
 
     try {
       const response = await fetch(activeAudioUrl, { cache: 'no-store' });
@@ -727,13 +751,16 @@
         window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       }
 
+      stopDownloadStatusAnimation();
       statusText.textContent = '已开始下载';
     } catch (error) {
+      stopDownloadStatusAnimation();
       triggerFileDownload(activeAudioUrl, fileName);
       statusText.textContent = '已打开音频链接';
     } finally {
       downloadInProgress = false;
       downloadBtn.removeAttribute('aria-disabled');
+      stopDownloadStatusAnimation();
 
       window.setTimeout(() => {
         if (statusText.textContent === '已开始下载' || statusText.textContent === '已打开音频链接') {
@@ -757,6 +784,8 @@
 
   async function preloadDuration(url) {
     const requestId = ++durationRequestId;
+    const defaultAudioUrl = normalizeAudioUrl(resolveDefaultAudioUrl());
+    const normalizedUrl = normalizeAudioUrl(url);
 
     function updateIfCurrent(seconds) {
       if (requestId !== durationRequestId) {
@@ -770,10 +799,18 @@
 
     if (hintedDuration) {
       updateIfCurrent(hintedDuration);
+
+      if (normalizedUrl === defaultAudioUrl) {
+        return;
+      }
     }
 
     if (Number.isFinite(audio.duration) && audio.duration > 0) {
       updateIfCurrent(audio.duration);
+      return;
+    }
+
+    if (playRequested || !audio.paused) {
       return;
     }
 
@@ -824,6 +861,10 @@
     }
 
     try {
+      if (playRequested || !audio.paused) {
+        return;
+      }
+
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
       if (!AudioContextClass) {
@@ -863,16 +904,8 @@
   audio.addEventListener('timeupdate', updateProgress);
   audio.addEventListener('pause', () => setPlayingState(false));
   audio.addEventListener('play', () => setPlayingState(true));
-  audio.addEventListener('canplay', async () => {
-    if (!playRequested || !audio.paused) {
-      return;
-    }
-
-    try {
-      await audio.play();
-    } catch (error) {
-      statusText.textContent = '请点击后播放';
-    }
+  audio.addEventListener('playing', () => {
+    hasStartedPlayback = true;
   });
   audio.addEventListener('ended', () => {
     playRequested = false;
@@ -907,6 +940,10 @@
     if (audio.paused) {
       playRequested = true;
       statusText.textContent = '正在加载音频...';
+
+      if (!hasStartedPlayback && audio.currentTime > 0.2 && audio.currentTime < 5) {
+        audio.currentTime = 0;
+      }
 
       try {
         await audio.play();
